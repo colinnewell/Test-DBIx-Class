@@ -4,6 +4,7 @@ package Test::DBIx::Class::SchemaManager::Trait::Testpostgresql; {
 	use MooseX::Attribute::ENV;
 	use Test::PostgreSQL;
 	use Test::More ();
+	use Try::Tiny;
 	use Path::Class qw(dir);
 
 
@@ -25,27 +26,47 @@ package Test::DBIx::Class::SchemaManager::Trait::Testpostgresql; {
 			$ENV{TEST_POSTGRESQL_PRESERVE} = 1;
 		}
 
-        my %config;# = (
+		my %config;# = (
 		#	initdb_args => $Test::PostgreSQL::Defaults{initdb_args} ."",
 		#	postmaster_args => $Test::PostgreSQL::Defaults{postmaster_args},
 		#);
 
 		$config{base_dir} = $self->base_dir if $self->base_dir;	
-        # FIXME: problably need a version check to make this work.
+		# FIXME: problably need a version check to make this work.
+		# we have upped the optional dependency, but I don't think we can rely on that.
 		$config{extra_initdb_args} = $self->initdb if $self->initdb;	
 		$config{extra_postmaster_args} = $self->postmaster if $self->postmaster;
-        $config{pg_ctl} = '';
+		# if we're running as root fudge this.
 		
 		if($self->base_dir && -e $self->base_dir) {
 			$self->builder->ok(-w $self->base_dir, "Path ".$self->base_dir." is accessible, forcing 'force_drop_table'");
 			$self->force_drop_table(1);
 		}
 
-		if(my $testdb = Test::PostgreSQL->new(%config)) {
-			return $testdb;
-		} else {
-			die $Test::PostgreSQL::errstr;
+		try
+		{
+			if(my $testdb = Test::PostgreSQL->new(%config)) {
+				return $testdb;
+			} else {
+				die $Test::PostgreSQL::errstr;
+			}
 		}
+		catch
+		{
+			if(/trust\s+failed/)
+			{
+				$config{pg_ctl} = '';
+				if(my $testdb = Test::PostgreSQL->new(%config)) {
+					return $testdb;
+				} else {
+					die $Test::PostgreSQL::errstr;
+				}
+			}
+			else
+			{
+				die $_;
+			}
+		};
 	}
 
 	sub get_default_connect_info {

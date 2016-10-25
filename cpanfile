@@ -20,13 +20,14 @@ requires 'Test::Builder' => '0.96';
 requires 'Test::Deep' => '0.106';
 requires 'File::Temp';
 requires 'File::Path';
+requires 'Try::Tiny';
 
 feature 'mysql', 'MySql Support' => sub { 
 	requires 'Test::mysqld' => '0.14',
 };
 
 feature 'postgres', 'Postgresql Support' => sub { 
-	requires 'Test::PostgreSQL' => '0.09',
+	requires 'Test::PostgreSQL' => '1.20',
 	requires 'DateTime::Format::Pg' => '0',
 };
 
