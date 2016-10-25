@@ -25,14 +25,16 @@ package Test::DBIx::Class::SchemaManager::Trait::Testpostgresql; {
 			$ENV{TEST_POSTGRESQL_PRESERVE} = 1;
 		}
 
-		my %config = (
-			initdb_args => $Test::PostgreSQL::Defaults{initdb_args} ."",
-			postmaster_args => $Test::PostgreSQL::Defaults{postmaster_args},
-		);
+        my %config;# = (
+		#	initdb_args => $Test::PostgreSQL::Defaults{initdb_args} ."",
+		#	postmaster_args => $Test::PostgreSQL::Defaults{postmaster_args},
+		#);
 
 		$config{base_dir} = $self->base_dir if $self->base_dir;	
-		$config{initdb} = $self->initdb if $self->initdb;	
-		$config{postmaster} = $self->postmaster if $self->postmaster;
+        # FIXME: problably need a version check to make this work.
+		$config{extra_initdb_args} = $self->initdb if $self->initdb;	
+		$config{extra_postmaster_args} = $self->postmaster if $self->postmaster;
+        $config{pg_ctl} = '';
 		
 		if($self->base_dir && -e $self->base_dir) {
 			$self->builder->ok(-w $self->base_dir, "Path ".$self->base_dir." is accessible, forcing 'force_drop_table'");
