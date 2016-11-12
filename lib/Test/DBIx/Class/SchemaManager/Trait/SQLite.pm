@@ -3,6 +3,7 @@ package Test::DBIx::Class::SchemaManager::Trait::SQLite; {
 	use Moose::Role;
 	use MooseX::Attribute::ENV;
 	use Test::DBIx::Class::Types qw(ConnectInfo);
+	use Carp;
 
 	sub dbname {
 		my ($self) = @_;
